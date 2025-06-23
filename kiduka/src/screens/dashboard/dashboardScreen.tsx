@@ -48,10 +48,29 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const loadRecentAnalyses = async () => {
     try {
       setIsLoading(true);
-      const analyses = await soilService.getAnalysisHistory(1, 5);
-      setRecentAnalyses(analyses);
+
+      // Updated to use the new service structure that returns an object
+      const analysisData = await soilService.getAnalysisHistory(1, 5);
+      setRecentAnalyses(analysisData.predictions); // Extract predictions array
+
+      console.log(`Loaded ${analysisData.predictions.length} recent analyses`);
     } catch (error) {
       console.error("Error loading recent analyses:", error);
+
+      // Handle authentication errors
+      if (
+        error &&
+        typeof error === "object" &&
+        "status" in error &&
+        error.status === 401
+      ) {
+        console.warn("User not authenticated for analysis history");
+        // Set empty array for unauthenticated users (guest mode)
+        setRecentAnalyses([]);
+      } else {
+        // Show user-friendly error for other cases
+        console.error("Failed to load analysis history:", error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,12 +90,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch (error) {
+      return "Recent";
+    }
   };
 
   const renderHeader = () => (
@@ -116,9 +139,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const renderWelcomeSection = () => (
     <View style={styles.welcomeSection}>
       <Text style={styles.greetingText}>
-        {getGreeting()}, {user?.full_name?.split(" ")[0] || "Farmer"}! 👋
+        {getGreeting()},{" "}
+        {user?.full_name?.split(" ")[0] || user?.username || "Farmer"}! 👋
       </Text>
-      <Text style={styles.welcomeSubtext}>Ready to analyze soil?</Text>
+      <Text style={styles.welcomeSubtext}>Ready to analyze your soil?</Text>
     </View>
   );
 
@@ -126,11 +150,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     <Card style={styles.quickAnalysisCard} pressable onPress={onStartAnalysis}>
       <View style={styles.quickAnalysisContent}>
         <View style={styles.quickAnalysisLeft}>
-          <Text style={styles.quickAnalysisIcon}>📊</Text>
+          <Text style={styles.quickAnalysisIcon}>🧪</Text>
           <View style={styles.quickAnalysisText}>
             <Text style={styles.quickAnalysisTitle}>Quick Analysis</Text>
             <Text style={styles.quickAnalysisSubtitle}>
-              Scan soil in 3 steps
+              Analyze soil in 3 simple steps
             </Text>
           </View>
         </View>
@@ -154,13 +178,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <Card style={styles.actionCard} pressable onPress={onViewReports}>
         <Text style={styles.actionCardIcon}>📈</Text>
         <Text style={styles.actionCardTitle}>My Reports</Text>
-        <Text style={styles.actionCardSubtitle}>View history</Text>
+        <Text style={styles.actionCardSubtitle}>View analysis history</Text>
       </Card>
 
       <Card style={styles.actionCard} pressable onPress={onFindAgrovets}>
         <Text style={styles.actionCardIcon}>🏪</Text>
         <Text style={styles.actionCardTitle}>Agrovets</Text>
-        <Text style={styles.actionCardSubtitle}>Find nearby</Text>
+        <Text style={styles.actionCardSubtitle}>Find nearby stores</Text>
       </Card>
     </View>
   );
@@ -187,12 +211,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       </View>
 
       <Text style={styles.analysisLocation}>
-        Field Analysis - {analysis.prediction_id?.slice(-8) || "Unknown"}
+        Soil Analysis - {analysis.prediction_id?.slice(-8) || "Unknown"}
       </Text>
 
       <View style={styles.analysisFooter}>
-        <Text style={styles.recommendationText}>
-          Recommended: {analysis.fertilizer_recommendation}
+        <Text style={styles.recommendationText} numberOfLines={1}>
+          💡 {analysis.fertilizer_recommendation}
         </Text>
         <Ionicons
           name="chevron-forward"
@@ -225,7 +249,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           <Text style={styles.emptyIcon}>🌱</Text>
           <Text style={styles.emptyTitle}>No analyses yet</Text>
           <Text style={styles.emptySubtitle}>
-            Start your first soil analysis to see results here
+            Start your first soil analysis to see detailed insights and
+            recommendations
           </Text>
           <TouchableOpacity
             onPress={onStartAnalysis}
@@ -451,6 +476,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.families.roboto.regular,
     color: Colors.text.secondary,
     flex: 1,
+    marginRight: Layout.spacing.sm,
   },
   emptyCard: {
     alignItems: "center",
@@ -473,6 +499,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: Fonts.sizes.base * Fonts.lineHeights.relaxed,
     marginBottom: Layout.spacing.lg,
+    paddingHorizontal: Layout.spacing.md,
   },
   emptyButton: {
     backgroundColor: Colors.primary.green,
