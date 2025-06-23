@@ -12,10 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/buttons/button";
 import { Input } from "../../components/ui/inputs/input";
 import { Colors, Fonts, Layout } from "../../constants";
 import { authService, RegisterData } from "../../services";
+
+// A good practice for keyboard offset
+const KEYBOARD_VERTICAL_OFFSET = Platform.OS === "ios" ? 64 : 0;
 
 interface RegisterScreenProps {
   onRegister: (user: any) => void;
@@ -69,6 +73,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       newErrors.username = "Username is required";
     } else if (formData.username.length < 3) {
       newErrors.username = "Username must be at least 3 characters";
+    } else if (formData.username.length > 50) {
+      newErrors.username = "Username must be less than 50 characters";
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
       newErrors.username =
         "Username can only contain letters, numbers, and underscores";
@@ -82,11 +88,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Password validation
+    // Password validation (matches backend requirements)
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
+    } else if (formData.password.length > 100) {
+      newErrors.password = "Password must be less than 100 characters";
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
       newErrors.password =
         "Password must contain at least one uppercase letter, one lowercase letter, and one number";
@@ -107,150 +115,253 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({}); // Clear any previous errors
+
     try {
+      console.log("Attempting registration for:", formData.username);
+
+      // Prepare data to match backend UserCreate schema
       const registerData: RegisterData = {
         full_name: formData.fullName.trim(),
-        username: formData.username.trim(),
+        username: formData.username.trim().toLowerCase(), // Ensure lowercase for consistency
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
       };
 
-      const authResponse = await authService.register(registerData);
+      // Step 1: Register the user (returns UserResponse, not AuthResponse)
+      const userResponse = await authService.register(registerData);
+      console.log("Registration successful for:", userResponse.username);
 
-      Alert.alert(
-        "Account Created Successfully!",
-        "Welcome to Kiduka. You can now start analyzing your soil.",
-        [
-          {
-            text: "Get Started",
-            onPress: () => onRegister(authResponse.user),
-          },
-        ]
-      );
+      // Step 2: Automatically log in the user after successful registration
+      const loginResponse = await authService.login({
+        username_or_email: registerData.username,
+        password: registerData.password,
+      });
+
+      // Step 3: Handle the successful login
+      if (loginResponse.user) {
+        console.log("Auto-login successful for:", loginResponse.user.username);
+
+        Alert.alert(
+          "Account Created Successfully! 🎉",
+          "Welcome to Kiduka! You can now start analyzing your soil and improving your farm's productivity.",
+          [
+            {
+              text: "Get Started",
+              onPress: () => onRegister(loginResponse.user),
+            },
+          ]
+        );
+      } else {
+        // Fallback if user data not returned
+        const user = await authService.getCurrentUser();
+        if (user) {
+          onRegister(user);
+        } else {
+          throw new Error("Unable to complete registration process");
+        }
+      }
     } catch (error) {
       console.error("Registration error:", error);
-      Alert.alert(
-        "Registration Failed",
-        error instanceof Error ? error.message : "Please try again later.",
-        [{ text: "OK" }]
-      );
+
+      // Extract meaningful error message
+      let errorMessage = "Registration failed. Please try again.";
+
+      if (error && typeof error === "object") {
+        if ("message" in error && typeof error.message === "string") {
+          errorMessage = error.message;
+        } else if ("detail" in error && typeof error.detail === "string") {
+          errorMessage = error.detail;
+        }
+      }
+
+      // Show user-friendly error messages
+      if (
+        errorMessage.includes("User with this email or username already exists")
+      ) {
+        errorMessage =
+          "An account with this email or username already exists. Please try logging in or use different credentials.";
+      } else if (errorMessage.includes("validation")) {
+        errorMessage = "Please check your information and try again.";
+      } else if (errorMessage.includes("Network error")) {
+        errorMessage =
+          "Network connection problem. Please check your internet connection.";
+      }
+
+      Alert.alert("Registration Failed", errorMessage, [{ text: "OK" }]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const clearFieldError = (field: keyof FormErrors) => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
-          </TouchableOpacity>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={onBack}
+              style={styles.backButton}
+              disabled={isLoading}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={Colors.text.primary}
+              />
+            </TouchableOpacity>
+          </View>
 
-        {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Create Account 🌱</Text>
-          <Text style={styles.welcomeSubtitle}>
-            Join thousands of farmers improving their soil health
-          </Text>
-        </View>
-
-        {/* Form Section */}
-        <View style={styles.formSection}>
-          <Input
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={formData.fullName}
-            onChangeText={updateFormData("fullName")}
-            error={errors.fullName}
-            leftIcon="person-outline"
-          />
-
-          <Input
-            label="Username"
-            placeholder="Choose a username"
-            value={formData.username}
-            onChangeText={updateFormData("username")}
-            error={errors.username}
-            leftIcon="at-outline"
-          />
-
-          <Input
-            label="Email"
-            placeholder="Enter your email address"
-            value={formData.email}
-            onChangeText={updateFormData("email")}
-            keyboardType="email-address"
-            error={errors.email}
-            leftIcon="mail-outline"
-          />
-
-          <Input
-            label="Password"
-            placeholder="Create a strong password"
-            value={formData.password}
-            onChangeText={updateFormData("password")}
-            secureTextEntry={true}
-            error={errors.password}
-            leftIcon="lock-closed-outline"
-          />
-
-          <Input
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChangeText={updateFormData("confirmPassword")}
-            secureTextEntry={true}
-            error={errors.confirmPassword}
-            leftIcon="lock-closed-outline"
-          />
-
-          <Button
-            title="CREATE ACCOUNT"
-            onPress={handleRegister}
-            loading={isLoading}
-            disabled={isLoading}
-            size="lg"
-            style={styles.registerButton}
-          />
-        </View>
-
-        {/* Login Section */}
-        <View style={styles.loginSection}>
-          <Text style={styles.loginText}>
-            Already have an account?{" "}
-            <Text style={styles.loginLink} onPress={onNavigateToLogin}>
-              Login
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeTitle}>Create Account 🌱</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Join thousands of farmers improving their soil health
             </Text>
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </View>
+
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <Input
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={formData.fullName}
+              onChangeText={(text) => {
+                updateFormData("fullName")(text);
+                clearFieldError("fullName");
+              }}
+              error={errors.fullName}
+              leftIcon="person-outline"
+              editable={!isLoading}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+
+            <Input
+              label="Username"
+              placeholder="Choose a unique username"
+              value={formData.username}
+              onChangeText={(text) => {
+                // Remove spaces and convert to lowercase automatically
+                const cleanText = text.replace(/\s/g, "").toLowerCase();
+                updateFormData("username")(cleanText);
+                clearFieldError("username");
+              }}
+              error={errors.username}
+              leftIcon="at-outline"
+              editable={!isLoading}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Input
+              label="Email"
+              placeholder="Enter your email address"
+              value={formData.email}
+              onChangeText={(text) => {
+                updateFormData("email")(text);
+                clearFieldError("email");
+              }}
+              keyboardType="email-address"
+              error={errors.email}
+              leftIcon="mail-outline"
+              editable={!isLoading}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Input
+              label="Password"
+              placeholder="Create a strong password (8+ characters)"
+              value={formData.password}
+              onChangeText={(text) => {
+                updateFormData("password")(text);
+                clearFieldError("password");
+                // Also clear confirm password error if passwords now match
+                if (
+                  formData.confirmPassword &&
+                  text === formData.confirmPassword
+                ) {
+                  clearFieldError("confirmPassword");
+                }
+              }}
+              secureTextEntry={true}
+              error={errors.password}
+              leftIcon="lock-closed-outline"
+              editable={!isLoading}
+            />
+
+            <Input
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChangeText={(text) => {
+                updateFormData("confirmPassword")(text);
+                clearFieldError("confirmPassword");
+              }}
+              secureTextEntry={true}
+              error={errors.confirmPassword}
+              leftIcon="lock-closed-outline"
+              editable={!isLoading}
+            />
+
+            <Button
+              title={isLoading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+              onPress={handleRegister}
+              loading={isLoading}
+              disabled={isLoading}
+              size="lg"
+              style={styles.registerButton}
+            />
+          </View>
+
+          {/* Login Section */}
+          <View style={styles.loginSection}>
+            <Text style={styles.loginText}>
+              Already have an account?{" "}
+              <Text
+                style={[styles.loginLink, isLoading && { opacity: 0.5 }]}
+                onPress={isLoading ? undefined : onNavigateToLogin}
+              >
+                Login
+              </Text>
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: Colors.background.primary,
+  },
+  container: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: Layout.spacing.xl,
   },
   header: {
-    paddingTop: Layout.safeArea.top,
     paddingBottom: Layout.spacing.lg,
   },
   backButton: {
@@ -293,7 +404,6 @@ const styles = StyleSheet.create({
   },
   loginSection: {
     alignItems: "center",
-    paddingBottom: Layout.safeArea.bottom,
   },
   loginText: {
     fontSize: Fonts.sizes.base,

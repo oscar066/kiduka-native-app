@@ -12,10 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/buttons/button";
 import { Input } from "../../components/ui/inputs/input";
 import { Colors, Fonts, Layout } from "../../constants";
 import { authService, LoginCredentials } from "../../services";
+
+// A good practice for keyboard offset if you have a standard header
+const KEYBOARD_VERTICAL_OFFSET = Platform.OS === "ios" ? 64 : 0;
 
 interface LoginScreenProps {
   onLogin: (user: any) => void;
@@ -30,24 +34,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onContinueAsGuest,
   onBack,
 }) => {
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {}
-  );
+  const [errors, setErrors] = useState<{
+    usernameOrEmail?: string;
+    password?: string;
+  }>({});
 
   const validateForm = (): boolean => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: { usernameOrEmail?: string; password?: string } = {};
 
-    if (!email.trim()) {
-      newErrors.email = "Email or username is required";
+    if (!usernameOrEmail.trim()) {
+      newErrors.usernameOrEmail = "Email or username is required";
     }
 
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
@@ -58,23 +63,59 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({}); // Clear any previous errors
+
     try {
+      console.log("Attempting login with:", usernameOrEmail);
+
       const credentials: LoginCredentials = {
-        username: email, // Backend expects username field
+        username_or_email: usernameOrEmail.trim(), // Matches backend schema
         password,
       };
 
       const authResponse = await authService.login(credentials);
-      onLogin(authResponse.user);
+
+      // Handle user data properly
+      if (authResponse.user) {
+        console.log("Login successful, user:", authResponse.user.username);
+        onLogin(authResponse.user);
+      } else {
+        // Fallback: try to fetch user data separately if not returned
+        console.log("No user data in auth response, fetching separately...");
+        const user = await authService.getCurrentUser();
+        if (user) {
+          console.log("User data fetched successfully:", user.username);
+          onLogin(user);
+        } else {
+          throw new Error("Unable to get user information after login");
+        }
+      }
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert(
-        "Login Failed",
-        error instanceof Error
-          ? error.message
-          : "Please check your credentials and try again.",
-        [{ text: "OK" }]
-      );
+
+      // Extract meaningful error message
+      let errorMessage = "Please check your credentials and try again.";
+
+      if (error && typeof error === "object") {
+        if ("message" in error && typeof error.message === "string") {
+          errorMessage = error.message;
+        } else if ("detail" in error && typeof error.detail === "string") {
+          errorMessage = error.detail;
+        }
+      }
+
+      // Show user-friendly error messages
+      if (errorMessage.includes("Incorrect username/email or password")) {
+        errorMessage = "Invalid username/email or password. Please try again.";
+      } else if (errorMessage.includes("Account is deactivated")) {
+        errorMessage =
+          "Your account has been deactivated. Please contact support.";
+      } else if (errorMessage.includes("Network error")) {
+        errorMessage =
+          "Network connection problem. Please check your internet connection.";
+      }
+
+      Alert.alert("Login Failed", errorMessage, [{ text: "OK" }]);
     } finally {
       setIsLoading(false);
     }
@@ -88,105 +129,130 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     );
   };
 
+  const clearFieldError = (field: "usernameOrEmail" | "password") => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
-          </TouchableOpacity>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={Colors.text.primary}
+              />
+            </TouchableOpacity>
+          </View>
 
-        {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Welcome Back! 🌾</Text>
-          <Text style={styles.welcomeSubtitle}>
-            Sign in to continue analyzing your soil
-          </Text>
-        </View>
-
-        {/* Form Section */}
-        <View style={styles.formSection}>
-          <Input
-            label="Email or Username"
-            placeholder="Enter your email or username"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            error={errors.email}
-            leftIcon="person-outline"
-          />
-
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-            error={errors.password}
-            leftIcon="lock-closed-outline"
-          />
-
-          <TouchableOpacity
-            onPress={handleForgotPassword}
-            style={styles.forgotPassword}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <Button
-            title="LOGIN"
-            onPress={handleLogin}
-            loading={isLoading}
-            disabled={isLoading}
-            size="lg"
-            style={styles.loginButton}
-          />
-
-          <Button
-            title="Continue as Guest"
-            onPress={onContinueAsGuest}
-            variant="outline"
-            size="lg"
-            style={styles.guestButton}
-          />
-        </View>
-
-        {/* Sign Up Section */}
-        <View style={styles.signUpSection}>
-          <Text style={styles.signUpText}>
-            Don't have an account?{" "}
-            <Text style={styles.signUpLink} onPress={onNavigateToRegister}>
-              Sign Up
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeTitle}>Welcome Back! 🌾</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Sign in to continue analyzing your soil
             </Text>
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </View>
+
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <Input
+              label="Email or Username"
+              placeholder="Enter your email or username"
+              value={usernameOrEmail}
+              onChangeText={(text) => {
+                setUsernameOrEmail(text);
+                clearFieldError("usernameOrEmail");
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              error={errors.usernameOrEmail}
+              leftIcon="person-outline"
+              editable={!isLoading}
+            />
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                clearFieldError("password");
+              }}
+              secureTextEntry={true}
+              error={errors.password}
+              leftIcon="lock-closed-outline"
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              onPress={handleForgotPassword}
+              style={styles.forgotPassword}
+              disabled={isLoading}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+            <Button
+              title={isLoading ? "LOGGING IN..." : "LOGIN"}
+              onPress={handleLogin}
+              loading={isLoading}
+              disabled={isLoading}
+              size="lg"
+              style={styles.loginButton}
+            />
+            <Button
+              title="Continue as Guest"
+              onPress={onContinueAsGuest}
+              variant="outline"
+              size="lg"
+              style={styles.guestButton}
+              disabled={isLoading}
+            />
+          </View>
+
+          {/* Sign Up Section */}
+          <View style={styles.signUpSection}>
+            <Text style={styles.signUpText}>
+              Don't have an account?{" "}
+              <Text
+                style={[styles.signUpLink, isLoading && { opacity: 0.5 }]}
+                onPress={isLoading ? undefined : onNavigateToRegister}
+              >
+                Sign Up
+              </Text>
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: Colors.background.primary,
+  },
+  container: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: Layout.spacing.xl,
   },
   header: {
-    paddingTop: Layout.safeArea.top,
     paddingBottom: Layout.spacing.lg,
   },
   backButton: {
@@ -240,7 +306,6 @@ const styles = StyleSheet.create({
   },
   signUpSection: {
     alignItems: "center",
-    paddingBottom: Layout.safeArea.bottom,
   },
   signUpText: {
     fontSize: Fonts.sizes.base,
