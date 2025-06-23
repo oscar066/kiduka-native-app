@@ -20,6 +20,7 @@ export const Colors = {
     secondary: "#757575",
     light: "#9E9E9E",
     white: "#FFFFFF",
+    disabled: "#BDBDBD", // Added for disabled input text
   },
 
   // Status Colors
