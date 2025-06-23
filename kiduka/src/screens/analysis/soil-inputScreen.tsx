@@ -4,12 +4,15 @@ import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/buttons/button";
 import { Card } from "../../components/ui/cards/card";
 import { Input } from "../../components/ui/inputs/input";
@@ -33,6 +36,12 @@ const SOIL_TEXTURES = [
   "Silty Clay",
   "Sandy Clay",
 ];
+
+// Calculate the height of the fixed header elements to offset the keyboard
+// This is an approximation. You might need to fine-tune it.
+const HEADER_PLUS_PROGRESS_HEIGHT = 90;
+const KEYBOARD_VERTICAL_OFFSET =
+  Platform.OS === "ios" ? HEADER_PLUS_PROGRESS_HEIGHT : 0;
 
 export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
   onNext,
@@ -59,6 +68,7 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
 
   const getCurrentLocation = async () => {
     try {
+      setLocationStatus("loading");
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setLocationStatus("error");
@@ -69,7 +79,6 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
 
-      // Get location name
       const [address] = await Location.reverseGeocodeAsync({
         latitude,
         longitude,
@@ -309,15 +318,14 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
 
-      {/* Header */}
+      {/* Header and Progress are outside the KeyboardAvoidingView */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Soil Analysis</Text>
           <TouchableOpacity>
@@ -328,47 +336,53 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
             />
           </TouchableOpacity>
         </View>
-
         <Text style={styles.stepIndicator}>1/3</Text>
       </View>
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <ProgressBar progress={0.33} showPercentage={false} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      {/* KeyboardAvoidingView wraps the scrollable area and the footer */}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
       >
-        {renderLocationSection()}
-        {renderSoilCharacteristics()}
-      </ScrollView>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderLocationSection()}
+          {renderSoilCharacteristics()}
+        </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          title="NEXT STEP"
-          onPress={handleNext}
-          size="lg"
-          style={styles.nextButton}
-          icon={
-            <Ionicons
-              name="arrow-forward"
-              size={16}
-              color={Colors.text.white}
-            />
-          }
-        />
-        <Text style={styles.footerText}>Nutrients ────►</Text>
-      </View>
-    </View>
+        {/* Footer is inside so it moves with the keyboard */}
+        <View style={styles.footer}>
+          <Button
+            title="NEXT STEP"
+            onPress={handleNext}
+            size="lg"
+            style={styles.nextButton}
+            icon={
+              <Ionicons
+                name="arrow-forward"
+                size={16}
+                color={Colors.text.white}
+              />
+            }
+          />
+          <Text style={styles.footerText}>Nutrients ────►</Text>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: Colors.background.primary,
   },
@@ -377,7 +391,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Layout.spacing.lg,
-    paddingTop: Layout.safeArea.top,
     paddingBottom: Layout.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
@@ -407,11 +420,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.md,
   },
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: Layout.spacing.lg,
+    paddingBottom: Layout.spacing.xl,
   },
   locationCard: {
     marginBottom: Layout.spacing.xl,
@@ -552,7 +569,7 @@ const styles = StyleSheet.create({
     padding: Layout.spacing.lg,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    backgroundColor: Colors.background.card,
+    backgroundColor: Colors.background.primary,
   },
   nextButton: {
     marginBottom: Layout.spacing.sm,
