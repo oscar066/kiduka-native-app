@@ -1,18 +1,27 @@
 // src/screens/reports/ReportsScreen.tsx
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors, Fonts, Layout } from '../../constants';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { Ionicons } from "@expo/vector-icons";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors, Fonts, Layout } from "../../constants";
+import { useTabScreenSafeArea } from "../../hooks/useTabSafeScreenArea";
 
 export const ReportsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -21,15 +30,25 @@ export const ReportsScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>My Reports</Text>
-        
+
         <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="filter-outline" size={24} color={Colors.text.primary} />
+          <Ionicons
+            name="filter-outline"
+            size={24}
+            color={Colors.text.primary}
+          />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📊</Text>
           <Text style={styles.emptyTitle}>No Reports Yet</Text>
@@ -37,19 +56,20 @@ export const ReportsScreen: React.FC = () => {
             Start by analyzing your soil to generate reports
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/scan/ScanScreen.tsx
 export const ScanScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -57,13 +77,19 @@ export const ScanScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Soil Scanner</Text>
-        
+
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📱</Text>
           <Text style={styles.emptyTitle}>Camera Scanner</Text>
@@ -71,19 +97,20 @@ export const ScanScreen: React.FC = () => {
             Use your camera to scan soil samples for quick analysis
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/shop/ShopScreen.tsx
 export const ShopScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -91,15 +118,25 @@ export const ShopScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Agrovet Shop</Text>
-        
+
         <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search-outline" size={24} color={Colors.text.primary} />
+          <Ionicons
+            name="search-outline"
+            size={24}
+            color={Colors.text.primary}
+          />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>🏪</Text>
           <Text style={styles.emptyTitle}>Find Nearby Agrovets</Text>
@@ -107,19 +144,20 @@ export const ShopScreen: React.FC = () => {
             Discover fertilizer suppliers and agricultural products in your area
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/analytics/AnalyticsScreen.tsx
 export const AnalyticsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -127,15 +165,25 @@ export const AnalyticsScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Analytics</Text>
-        
+
         <TouchableOpacity style={styles.exportButton}>
-          <Ionicons name="download-outline" size={24} color={Colors.text.primary} />
+          <Ionicons
+            name="download-outline"
+            size={24}
+            color={Colors.text.primary}
+          />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📈</Text>
           <Text style={styles.emptyTitle}>Analytics Dashboard</Text>
@@ -143,19 +191,20 @@ export const AnalyticsScreen: React.FC = () => {
             View detailed analytics and trends from your soil analyses
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/settings/SettingsScreen.tsx
 export const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -163,13 +212,19 @@ export const SettingsScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Settings</Text>
-        
+
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>⚙️</Text>
           <Text style={styles.emptyTitle}>App Settings</Text>
@@ -177,19 +232,20 @@ export const SettingsScreen: React.FC = () => {
             Customize your app preferences and account settings
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/help/HelpScreen.tsx
 export const HelpScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -197,15 +253,25 @@ export const HelpScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Help & FAQ</Text>
-        
+
         <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search-outline" size={24} color={Colors.text.primary} />
+          <Ionicons
+            name="search-outline"
+            size={24}
+            color={Colors.text.primary}
+          />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>❓</Text>
           <Text style={styles.emptyTitle}>Help Center</Text>
@@ -213,19 +279,20 @@ export const HelpScreen: React.FC = () => {
             Find answers to frequently asked questions and get help
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/support/SupportScreen.tsx
 export const SupportScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -233,13 +300,19 @@ export const SupportScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Support</Text>
-        
+
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📞</Text>
           <Text style={styles.emptyTitle}>Contact Support</Text>
@@ -247,19 +320,20 @@ export const SupportScreen: React.FC = () => {
             Get in touch with our support team for assistance
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 // src/screens/about/AboutScreen.tsx
 export const AboutScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
-      
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
@@ -267,13 +341,19 @@ export const AboutScreen: React.FC = () => {
         >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>About</Text>
-        
+
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: bottomPadding },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>ℹ️</Text>
           <Text style={styles.emptyTitle}>About Kiduka</Text>
@@ -281,8 +361,8 @@ export const AboutScreen: React.FC = () => {
             Learn more about our app, version info, and terms of service
           </Text>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -292,9 +372,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.primary,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.md,
     backgroundColor: Colors.background.card,
@@ -322,13 +402,14 @@ const styles = StyleSheet.create({
     width: 40,
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
     padding: Layout.spacing.lg,
+    // Note: paddingBottom is set dynamically in the component
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyIcon: {
     fontSize: 64,
@@ -339,13 +420,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.families.poppins.semiBold,
     color: Colors.text.primary,
     marginBottom: Layout.spacing.sm,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyDescription: {
     fontSize: Fonts.sizes.base,
     fontFamily: Fonts.families.roboto.regular,
     color: Colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: Fonts.sizes.base * 1.5,
     maxWidth: 280,
   },

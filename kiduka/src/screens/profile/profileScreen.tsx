@@ -12,7 +12,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Fonts, Layout } from "../../constants";
+import { useTabScreenSafeArea } from "../../hooks/useTabSafeScreenArea";
 
 interface ProfileOption {
   id: string;
@@ -26,6 +28,7 @@ interface ProfileOption {
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
 
@@ -228,7 +231,7 @@ export const ProfileScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" backgroundColor={Colors.background.primary} />
 
       {/* Header */}
@@ -256,7 +259,10 @@ export const ProfileScreen: React.FC = () => {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPadding }, // Dynamic bottom padding
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
@@ -297,7 +303,7 @@ export const ProfileScreen: React.FC = () => {
           <Text style={styles.buildText}>Build 2024.06.24</Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -331,7 +337,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: Layout.spacing.xl,
+    // Note: paddingBottom is set dynamically in the component
   },
   profileHeader: {
     backgroundColor: Colors.background.card,
