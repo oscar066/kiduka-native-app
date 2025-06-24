@@ -272,10 +272,11 @@ const DrawerNavigator = ({ user, onSignOut }: MainNavigatorProps) => {
     >
       <Drawer.Screen
         name="MainTabs"
-        component={BottomTabNavigator}
         options={{ title: "Dashboard" }}
         initialParams={{ user }}
-      />
+      >
+        {() => <BottomTabNavigator user={user} />}
+      </Drawer.Screen>
 
       <Drawer.Screen
         name="SoilAnalysisStack"
