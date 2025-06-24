@@ -1,4 +1,4 @@
-// src/screens/onboarding/OnboardingScreen.tsx
+// OnboardingScreen.tsx
 import { StatusBar } from "expo-status-bar";
 import React, { useRef, useState } from "react";
 import {

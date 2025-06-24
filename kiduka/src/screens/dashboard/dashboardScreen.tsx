@@ -1,5 +1,6 @@
 // src/screens/dashboard/DashboardScreen.tsx
 import { Ionicons } from "@expo/vector-icons";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
@@ -15,6 +16,7 @@ import { StatusBadge } from "../../components/ui/statusBadge";
 import { Colors, Fonts, Layout } from "../../constants";
 import { soilService } from "../../services";
 import { SoilAnalysisResult } from "../../types/soil";
+import { useTabScreenSafeArea } from '../../hooks/useTabSafeScreenArea';
 
 interface DashboardScreenProps {
   user: any;
@@ -35,6 +37,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onOpenProfile,
   onOpenNotifications,
 }) => {
+  const navigation = useNavigation();
+  const { bottomPadding } = useTabScreenSafeArea();
   const [recentAnalyses, setRecentAnalyses] = useState<SoilAnalysisResult[]>(
     []
   );
@@ -102,10 +106,19 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     }
   };
 
+  const handleDrawerToggle = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
-        <TouchableOpacity style={styles.menuButton}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={handleDrawerToggle}
+          accessibilityLabel="Open navigation menu"
+          accessibilityRole="button"
+        >
           <Ionicons name="menu" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
         <Text style={styles.appName}>Kiduka</Text>
@@ -115,17 +128,23 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         <TouchableOpacity
           style={styles.headerButton}
           onPress={onOpenNotifications}
+          accessibilityLabel="View notifications"
+          accessibilityRole="button"
         >
           <Ionicons
             name="notifications-outline"
             size={24}
             color={Colors.text.primary}
           />
-          {/* Notification badge */}
           <View style={styles.notificationBadge} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.headerButton} onPress={onOpenProfile}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={onOpenProfile}
+          accessibilityLabel="View profile"
+          accessibilityRole="button"
+        >
           <Ionicons
             name="person-outline"
             size={24}
@@ -270,7 +289,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       {renderHeader()}
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPadding },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -302,7 +324,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     paddingTop: Layout.safeArea.top,
     paddingBottom: Layout.spacing.md,
-    backgroundColor: Colors.background.primary,
+    backgroundColor: Colors.background.card,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -312,6 +334,7 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     marginRight: Layout.spacing.md,
+    padding: Layout.spacing.xs,
   },
   appName: {
     fontSize: Fonts.sizes.xl,
@@ -325,11 +348,12 @@ const styles = StyleSheet.create({
   headerButton: {
     marginLeft: Layout.spacing.md,
     position: "relative",
+    padding: Layout.spacing.xs,
   },
   notificationBadge: {
     position: "absolute",
-    top: -2,
-    right: -2,
+    top: 2,
+    right: 2,
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -337,6 +361,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Layout.spacing.lg,
+    // Note: paddingBottom is set dynamically in the component
   },
   welcomeSection: {
     marginBottom: Layout.spacing.xl,
