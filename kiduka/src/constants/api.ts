@@ -2,7 +2,7 @@
 
 export const API_CONFIG = {
   // backend URL
-  BASE_URL: "http://192.168.1.71:8000", // actual backend URL
+  BASE_URL: "http://192.168.1.69:8000", // actual backend URL
   timeout: 30000, // 30 seconds
   
   endpoints: {

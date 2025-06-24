@@ -3,6 +3,8 @@ export const Colors = {
   // Primary Colors (Agricultural Theme)
   primary: {
     green: "#2E7D32",
+    light: "#66BB6A", // Light green for backgrounds and subtle highlights
+    dark: "#1B5E20", // Dark green for strong accents and pressed states
     secondary: "#4CAF50",
     accent: "#FF8F00",
   },
