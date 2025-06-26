@@ -33,11 +33,11 @@ export const NutrientsInputScreen: React.FC<NutrientsInputScreenProps> = ({
   initialData,
 }) => {
   const [formData, setFormData] = useState({
-    n: initialData.n?.toString() || "", // Nitrogen
-    p: initialData.p?.toString() || "", // Phosphorus
-    k: initialData.k?.toString() || "", // Potassium
-    ca: initialData.ca?.toString() || "", // Calcium
-    mg: initialData.mg?.toString() || "", // Magnesium
+    n: initialData.n?.toString() || "", 
+    p: initialData.p?.toString() || "", 
+    k: initialData.k?.toString() || "", 
+    ca: initialData.ca?.toString() || "", 
+    mg: initialData.mg?.toString() || "", 
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -183,7 +183,7 @@ export const NutrientsInputScreen: React.FC<NutrientsInputScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       {/* Header */}
       <View style={styles.header}>

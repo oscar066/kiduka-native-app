@@ -20,7 +20,7 @@ export const ReportsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -68,7 +68,7 @@ export const ScanScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark"/>
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -109,7 +109,7 @@ export const ShopScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -156,7 +156,7 @@ export const AnalyticsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -203,7 +203,7 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark"/>
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -244,7 +244,7 @@ export const HelpScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -291,7 +291,7 @@ export const SupportScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -332,7 +332,7 @@ export const AboutScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       <View style={styles.header}>
         <TouchableOpacity

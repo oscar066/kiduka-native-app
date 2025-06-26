@@ -284,7 +284,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       {renderHeader()}
 

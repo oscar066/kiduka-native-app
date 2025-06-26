@@ -10,7 +10,7 @@ export const AboutScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark"/>
 
       <View style={styles.header}>
         <TouchableOpacity

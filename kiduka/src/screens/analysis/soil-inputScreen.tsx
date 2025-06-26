@@ -319,7 +319,7 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark" />
 
       {/* Header and Progress are outside the KeyboardAvoidingView */}
       <View style={styles.header}>

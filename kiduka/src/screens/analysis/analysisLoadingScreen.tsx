@@ -143,7 +143,7 @@ export const AnalysisLoadingScreen: React.FC<AnalysisLoadingScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" backgroundColor={Colors.primary.green} />
+      <StatusBar style="light" />
 
       {/* Header */}
       <View style={styles.header}>

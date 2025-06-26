@@ -39,7 +39,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       Animated.timing(progressAnim, {
         toValue: 1,
         duration: 2000,
-        useNativeDriver: false,
+        useNativeDriver: true, // <-- FIX #1: Set to true for performance
       }),
     ]).start(() => {
       // Animation complete, proceed to next screen
@@ -49,7 +49,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" backgroundColor={Colors.primary.green} />
+      <StatusBar style="light" />
       
       {/* Logo and Title Section */}
       <Animated.View
@@ -78,10 +78,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
             style={[
               styles.progressBar,
               {
-                width: progressAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
-                }),
+                // FIX #3: Animate transform instead of width
+                transform: [
+                  {
+                    translateX: progressAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-width * 0.7, 0],
+                    }),
+                  },
+                ],
               },
             ]}
           />
@@ -167,10 +172,11 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: Layout.radius.full,
-    overflow: 'hidden',
+    overflow: 'hidden', // This is crucial for the transform animation
     marginBottom: Layout.spacing.lg,
   },
   progressBar: {
+    width: '100%', // FIX #4: Set a fixed width
     height: '100%',
     backgroundColor: Colors.text.white,
     borderRadius: Layout.radius.full,

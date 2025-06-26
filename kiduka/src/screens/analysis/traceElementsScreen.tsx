@@ -195,7 +195,7 @@ export const TraceElementsScreen: React.FC<TraceElementsScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor={Colors.background.primary} />
+      <StatusBar style="dark"  />
 
       {/* Header */}
       <View style={styles.header}>
