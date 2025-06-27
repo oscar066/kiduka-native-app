@@ -246,7 +246,7 @@ const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary.green,
+    backgroundColor: Colors.primary.light,
   },
   header: {
     alignItems: "center",

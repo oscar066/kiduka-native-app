@@ -3,12 +3,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/buttons/button";
 import { Input } from "../../components/ui/inputs/input";
 import { ProgressBar } from "../../components/ui/progressBar";
@@ -27,17 +30,23 @@ interface NutrientLevel {
   color: string;
 }
 
+// Calculate the height of the fixed header elements to offset the keyboard
+// This is an approximation. You might need to fine-tune it.
+const HEADER_PLUS_PROGRESS_HEIGHT = 90;
+const KEYBOARD_VERTICAL_OFFSET =
+  Platform.OS === "ios" ? HEADER_PLUS_PROGRESS_HEIGHT : 0;
+
 export const NutrientsInputScreen: React.FC<NutrientsInputScreenProps> = ({
   onNext,
   onBack,
   initialData,
 }) => {
   const [formData, setFormData] = useState({
-    n: initialData.n?.toString() || "", 
-    p: initialData.p?.toString() || "", 
-    k: initialData.k?.toString() || "", 
-    ca: initialData.ca?.toString() || "", 
-    mg: initialData.mg?.toString() || "", 
+    n: initialData.n?.toString() || "",
+    p: initialData.p?.toString() || "",
+    k: initialData.k?.toString() || "",
+    ca: initialData.ca?.toString() || "",
+    mg: initialData.mg?.toString() || "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -182,10 +191,10 @@ export const NutrientsInputScreen: React.FC<NutrientsInputScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <StatusBar style="dark" />
 
-      {/* Header */}
+      {/* Header and Progress are outside the KeyboardAvoidingView */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
@@ -205,80 +214,89 @@ export const NutrientsInputScreen: React.FC<NutrientsInputScreenProps> = ({
         <Text style={styles.stepIndicator}>2/3</Text>
       </View>
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <ProgressBar progress={0.66} showPercentage={false} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      {/* KeyboardAvoidingView wraps the scrollable area and the footer */}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
       >
-        {/* Primary Nutrients Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🧪 Primary Nutrients (NPK)</Text>
-          <Text style={styles.sectionSubtitle}>
-            Essential macronutrients required for plant growth
-          </Text>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Primary Nutrients Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🧪 Macro Nutrients (NPK)</Text>
+            <Text style={styles.sectionSubtitle}>
+              Essential macronutrients required for plant growth
+            </Text>
 
-          {renderNutrientInput("n", "Nitrogen", "mg/kg", true)}
-          {renderNutrientInput("p", "Phosphorus", "mg/kg", true)}
-          {renderNutrientInput("k", "Potassium", "mg/kg", true)}
-        </View>
-
-        {/* Secondary Nutrients Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🧪 Secondary Nutrients</Text>
-          <Text style={styles.sectionSubtitle}>
-            Important nutrients for soil structure and plant health (optional)
-          </Text>
-
-          {renderNutrientInput("ca", "Calcium", "mg/kg", false)}
-          {renderNutrientInput("mg", "Magnesium", "mg/kg", false)}
-        </View>
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoHeader}>
-            <Ionicons
-              name="information-circle"
-              size={20}
-              color={Colors.primary.green}
-            />
-            <Text style={styles.infoTitle}>Nutrient Testing Tips</Text>
+            {renderNutrientInput("n", "Nitrogen", "mg/kg", true)}
+            {renderNutrientInput("p", "Phosphorus", "mg/kg", true)}
+            {renderNutrientInput("k", "Potassium", "mg/kg", true)}
           </View>
-          <Text style={styles.infoText}>
-            • Get soil tested at a certified laboratory for accurate readings
-            {"\n"}• Values should be from recent soil tests (within 6 months)
-            {"\n"}• Nitrogen levels can vary significantly with season{"\n"}•
-            Contact your local agricultural extension office for testing
-          </Text>
-        </View>
-      </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          title="NEXT STEP"
-          onPress={handleNext}
-          size="lg"
-          style={styles.nextButton}
-          icon={
-            <Ionicons
-              name="arrow-forward"
-              size={16}
-              color={Colors.text.white}
+          {/* Secondary Nutrients Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🧪 Micro Nutrients</Text>
+            <Text style={styles.sectionSubtitle}>
+              Important nutrients for soil structure and plant health (optional)
+            </Text>
+
+            {renderNutrientInput("ca", "Calcium", "mg/kg", false)}
+            {renderNutrientInput("mg", "Magnesium", "mg/kg", false)}
+          </View>
+
+          {/* Info Section */}
+          <View style={styles.infoSection}>
+            <View style={styles.infoHeader}>
+              <Ionicons
+                name="information-circle"
+                size={20}
+                color={Colors.primary.green}
+              />
+              <Text style={styles.infoTitle}>Nutrient Testing Tips</Text>
+            </View>
+            <Text style={styles.infoText}>
+              • Get soil tested at a certified laboratory for accurate readings
+              {"\n"}• Values should be from recent soil tests (within 6 months)
+              {"\n"}• Nitrogen levels can vary significantly with season{"\n"}•
+              Contact your local agricultural extension office for testing
+            </Text>
+          </View>
+
+          {/* Footer Button */}
+          <View style={styles.footerButton}>
+            <Button
+              title="NEXT STEP"
+              onPress={handleNext}
+              size="lg"
+              icon={
+                <Ionicons
+                  name="arrow-forward"
+                  size={16}
+                  color={Colors.text.white}
+                />
+              }
             />
-          }
-        />
-        <Text style={styles.footerText}>Trace Elements ────►</Text>
-      </View>
-    </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background.primary,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background.primary,
@@ -288,7 +306,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Layout.spacing.lg,
-    paddingTop: Layout.safeArea.top,
     paddingBottom: Layout.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
@@ -318,11 +335,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.md,
   },
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: Layout.spacing.lg,
+    paddingBottom: Layout.spacing.xl,
   },
   section: {
     marginBottom: Layout.spacing.xl,
@@ -396,14 +417,9 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: Fonts.sizes.sm * Fonts.lineHeights.relaxed,
   },
-  footer: {
-    padding: Layout.spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.background.card,
-  },
-  nextButton: {
-    marginBottom: Layout.spacing.sm,
+  footerButton: {
+    marginTop: Layout.spacing.xl,
+    paddingBottom: Layout.spacing.lg,
   },
   footerText: {
     fontSize: Fonts.sizes.sm,

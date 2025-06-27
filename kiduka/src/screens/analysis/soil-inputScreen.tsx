@@ -343,7 +343,7 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
         <ProgressBar progress={0.33} showPercentage={false} />
       </View>
 
-      {/* KeyboardAvoidingView wraps the scrollable area and the footer */}
+      {/* KeyboardAvoidingView wraps the scrollable area */}
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -357,25 +357,23 @@ export const SoilInputScreen: React.FC<SoilInputScreenProps> = ({
         >
           {renderLocationSection()}
           {renderSoilCharacteristics()}
-        </ScrollView>
 
-        {/* Footer is inside so it moves with the keyboard */}
-        <View style={styles.footer}>
-          <Button
-            title="NEXT STEP"
-            onPress={handleNext}
-            size="lg"
-            style={styles.nextButton}
-            icon={
-              <Ionicons
-                name="arrow-forward"
-                size={16}
-                color={Colors.text.white}
-              />
-            }
-          />
-          <Text style={styles.footerText}>Nutrients ────►</Text>
-        </View>
+          {/* Footer Button */}
+          <View style={styles.footerButton}>
+            <Button
+              title="NEXT STEP"
+              onPress={handleNext}
+              size="lg"
+              icon={
+                <Ionicons
+                  name="arrow-forward"
+                  size={16}
+                  color={Colors.text.white}
+                />
+              }
+            />
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -565,20 +563,9 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     textAlign: "center",
   },
-  footer: {
-    padding: Layout.spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.background.primary,
-  },
-  nextButton: {
-    marginBottom: Layout.spacing.sm,
-  },
-  footerText: {
-    fontSize: Fonts.sizes.sm,
-    fontFamily: Fonts.families.roboto.regular,
-    color: Colors.text.secondary,
-    textAlign: "center",
+  footerButton: {
+    marginTop: Layout.spacing.lg,
+    paddingBottom: Layout.spacing.sm,
   },
   errorText: {
     fontSize: Fonts.sizes.xs,

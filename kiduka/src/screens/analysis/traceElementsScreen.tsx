@@ -4,12 +4,15 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/buttons/button";
 import { Card } from "../../components/ui/cards/card";
 import { Input } from "../../components/ui/inputs/input";
@@ -23,6 +26,12 @@ interface TraceElementsScreenProps {
   onBack: () => void;
   initialData: Partial<SoilData>;
 }
+
+// Calculate the height of the fixed header elements to offset the keyboard
+// This is an approximation. You might need to fine-tune it.
+const HEADER_PLUS_PROGRESS_HEIGHT = 90;
+const KEYBOARD_VERTICAL_OFFSET =
+  Platform.OS === "ios" ? HEADER_PLUS_PROGRESS_HEIGHT : 0;
 
 export const TraceElementsScreen: React.FC<TraceElementsScreenProps> = ({
   onAnalyze,
@@ -194,10 +203,10 @@ export const TraceElementsScreen: React.FC<TraceElementsScreenProps> = ({
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="dark"  />
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      <StatusBar style="dark" />
 
-      {/* Header */}
+      {/* Header and Progress are outside the KeyboardAvoidingView */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
@@ -217,70 +226,81 @@ export const TraceElementsScreen: React.FC<TraceElementsScreenProps> = ({
         <Text style={styles.stepIndicator}>3/3</Text>
       </View>
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <ProgressBar progress={1.0} showPercentage={false} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      {/* KeyboardAvoidingView wraps the scrollable area */}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={KEYBOARD_VERTICAL_OFFSET}
       >
-        {/* Micronutrients Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚗️ Micronutrients</Text>
-          <Text style={styles.sectionSubtitle}>
-            Essential trace elements for plant health and development
-          </Text>
-
-          {renderTraceElementInput("cu", "Copper", "2.1")}
-          {renderTraceElementInput("fe", "Iron", "18.5")}
-          {renderTraceElementInput("zn", "Zinc", "3.2")}
-        </View>
-
-        {renderSummaryPreview()}
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoHeader}>
-            <Ionicons name="flask" size={20} color={Colors.primary.green} />
-            <Text style={styles.infoTitle}>Micronutrient Guidelines</Text>
-          </View>
-          <Text style={styles.infoText}>
-            • Micronutrients are needed in small amounts but are crucial{"\n"}•
-            Deficiencies can severely impact crop yields{"\n"}• Iron deficiency
-            causes yellowing of leaves (chlorosis){"\n"}• Zinc deficiency stunts
-            plant growth{"\n"}• Copper helps with enzyme function and disease
-            resistance
-          </Text>
-        </View>
-      </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          title="🔍 ANALYZE SOIL"
-          onPress={handleAnalyze}
-          loading={isLoading}
-          disabled={isLoading}
-          size="lg"
-          style={styles.analyzeButton}
-        />
-        <Text style={styles.analyzeSubtext}>Generate Report</Text>
-
-        <TouchableOpacity
-          onPress={handleSaveDraft}
-          style={styles.saveDraftButton}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.saveDraftText}>Save as Draft</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          {/* Micronutrients Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>⚗️ Micronutrients</Text>
+            <Text style={styles.sectionSubtitle}>
+              Essential trace elements for plant health and development
+            </Text>
+
+            {renderTraceElementInput("cu", "Copper", "2.1")}
+            {renderTraceElementInput("fe", "Iron", "18.5")}
+            {renderTraceElementInput("zn", "Zinc", "3.2")}
+          </View>
+
+          {renderSummaryPreview()}
+
+          {/* Info Section */}
+          <View style={styles.infoSection}>
+            <View style={styles.infoHeader}>
+              <Ionicons name="flask" size={20} color={Colors.primary.green} />
+              <Text style={styles.infoTitle}>Micronutrient Guidelines</Text>
+            </View>
+            <Text style={styles.infoText}>
+              • Micronutrients are needed in small amounts but are crucial{"\n"}
+              • Deficiencies can severely impact crop yields{"\n"}• Iron
+              deficiency causes yellowing of leaves (chlorosis){"\n"}• Zinc
+              deficiency stunts plant growth{"\n"}• Copper helps with enzyme
+              function and disease resistance
+            </Text>
+          </View>
+
+          {/* Footer Buttons */}
+          <View style={styles.footerButtons}>
+            <Button
+              title="🔍 ANALYZE SOIL"
+              onPress={handleAnalyze}
+              loading={isLoading}
+              disabled={isLoading}
+              size="lg"
+              style={styles.analyzeButton}
+            />
+            <Text style={styles.analyzeSubtext}>Generate Report</Text>
+
+            <TouchableOpacity
+              onPress={handleSaveDraft}
+              style={styles.saveDraftButton}
+            >
+              <Text style={styles.saveDraftText}>Save as Draft</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background.primary,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background.primary,
@@ -290,7 +310,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Layout.spacing.lg,
-    paddingTop: Layout.safeArea.top,
     paddingBottom: Layout.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
@@ -320,11 +339,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.md,
   },
+  keyboardAvoidingContainer: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: Layout.spacing.lg,
+    paddingBottom: Layout.spacing.xl,
   },
   section: {
     marginBottom: Layout.spacing.xl,
@@ -414,11 +437,9 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: Fonts.sizes.sm * Fonts.lineHeights.relaxed,
   },
-  footer: {
-    padding: Layout.spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.background.card,
+  footerButtons: {
+    marginTop: Layout.spacing.xl,
+    paddingBottom: Layout.spacing.lg,
   },
   analyzeButton: {
     marginBottom: Layout.spacing.sm,
