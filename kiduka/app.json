@@ -2,6 +2,7 @@
   "expo": {
     "name": "Kiduka",
     "slug": "kiduka",
+    "scheme": "kiduka",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
