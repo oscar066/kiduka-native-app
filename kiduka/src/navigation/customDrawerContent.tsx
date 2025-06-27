@@ -7,12 +7,12 @@ import {
 import React from "react";
 import {
   Alert,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Fonts, Layout } from "../constants";
 import { User } from "../types/user";
 
@@ -143,7 +143,7 @@ export const CustomDrawerContent: React.FC<CustomDrawerContentProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       {/* User Profile Section */}
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
@@ -161,9 +161,6 @@ export const CustomDrawerContent: React.FC<CustomDrawerContentProps> = ({
           <Text style={styles.userStatus}>Premium User</Text>
         </View>
       </View>
-
-      {/* Divider */}
-      <View style={styles.divider} />
 
       {/* Drawer Items */}
       <DrawerContentScrollView

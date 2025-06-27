@@ -122,12 +122,12 @@ const SoilAnalysisStackNavigator = () => {
             <ResultsOverviewScreen
               results={params.results}
               onBack={() => navigation.navigate("MainTabs")}
-              onViewDetails={() => {
-                console.log("View detailed results");
-              }}
-              onFindAgrovets={() => {
-                navigation.navigate("MainTabs", { screen: "Shop" });
-              }}
+              // onViewDetails={() => {
+              //   console.log("View detailed results");
+              // }}
+              // onFindAgrovets={() => {
+              //   navigation.navigate("MainTabs", { screen: "Shop" });
+              // }}
               onSaveToFavorites={() => {
                 console.log("Save to favorites");
               }}
@@ -157,8 +157,8 @@ const BottomTabNavigator = ({ user }: { user: User | null }) => {
             case "Reports":
               iconName = focused ? "bar-chart" : "bar-chart-outline";
               break;
-            case "Scan":
-              iconName = focused ? "scan" : "scan-outline";
+            case "Analyse":
+              iconName = focused ? "flask" : "flask-outline";
               break;
             case "Shop":
               iconName = focused ? "storefront" : "storefront-outline";
@@ -228,15 +228,15 @@ const BottomTabNavigator = ({ user }: { user: User | null }) => {
       </Tab.Screen>
 
       <Tab.Screen
-        name="Reports"
-        component={ReportsScreen}
-        options={{ title: "Reports" }}
+        name="Analyse"
+        component={SoilAnalysisStackNavigator}
+        options={{ title: "Analyse" }}
       />
 
       <Tab.Screen
-        name="Scan"
-        component={ScanScreen}
-        options={{ title: "Scan" }}
+        name="Reports"
+        component={ReportsScreen}
+        options={{ title: "Reports" }}
       />
 
       <Tab.Screen
